@@ -360,3 +360,61 @@ Ao final da atividade, o repositório deverá representar uma versão mais segur
 - consideração sobre rotação e revogação de credenciais.
 
 O objetivo final é compreender que **gerenciar segredos não significa apenas esconder uma senha**, mas controlar todo o ciclo de vida das informações sensíveis dentro do ambiente DevOps.
+
+# Revisão de segurança
+
+A revisão identificou e corrigiu dez problemas relacionados ao gerenciamento
+de segredos, exposição de infraestrutura e princípio do menor privilégio.
+Os detalhes completos estão disponíveis no arquivo [SECURITY.md](SECURITY.md).
+
+## Problema encontrado → Correção realizada → Justificativa
+
+| Problema encontrado | Correção realizada | Justificativa |
+|---|---|---|
+| `.env` versionado | Removido do Git e incluído no `.gitignore` | Evita armazenar segredos no repositório |
+| Credenciais em `credentials.json` | Arquivo removido | Elimina credenciais duplicadas e expostas |
+| Senha no código-fonte | Migrada para variável de ambiente | Separa código e configuração sensível |
+| Uso do usuário `root` | Aplicação configurada com usuário limitado | Aplica o princípio do menor privilégio |
+| Segredos no Compose | Substituídos por interpolação de variáveis | Evita segredos na infraestrutura como código |
+| Porta do MySQL exposta | Mapeamento externo removido | Reduz a superfície de ataque |
+| Chave registrada em logs | Valor removido das mensagens | Evita vazamentos em logs e pipelines |
+| Referências inseguras no endpoint | Configuração centralizada e retorno booleano | Mantém a funcionalidade sem divulgar valores |
+| Host do banco no health check | Resposta reduzida ao estado da aplicação | Evita revelar detalhes da infraestrutura |
+| Ausência de estratégia de ciclo de vida | Documentadas rotação e revogação | Reduz o impacto de credenciais comprometidas |
+
+## Configuração local
+
+Crie o arquivo de configuração local a partir do exemplo:
+
+    cp .env.example .env
+
+Preencha o `.env` com valores exclusivos para o ambiente. O arquivo não deve
+ser enviado ao Git.
+
+## Gerenciamento de segredos em produção
+
+Em produção, os segredos devem ser fornecidos por uma solução apropriada, como
+GitHub Actions Secrets, HashiCorp Vault, AWS Secrets Manager ou Azure Key Vault.
+
+As credenciais anteriormente versionadas devem ser consideradas comprometidas,
+revogadas e substituídas. Remover um segredo em um novo commit não o elimina do
+histórico do Git.
+
+## Arquitetura de rede no Docker
+
+A aplicação participa das redes `frontend` e `backend`. Somente sua porta HTTP é
+publicada no host. O banco participa exclusivamente da rede interna `backend` e
+não possui porta publicada, reduzindo a superfície de ataque.
+
+## Validações realizadas
+
+- Instalação das dependências com `npm install`;
+- execução local da API;
+- validação dos endpoints `/`, `/health` e `/config-check`;
+- execução da rotina de backup;
+- construção e execução com Docker Compose;
+- verificação da saúde do MySQL;
+- inspeção dos logs;
+- confirmação de que a porta do banco não está publicada;
+- verificação de segredos antes do commit;
+- auditoria de dependências com `npm audit`.

@@ -1,23 +1,56 @@
+services:
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: database
+      DB_PORT: 3306
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+
+  database:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD não configurada}
+      MYSQL_DATABASE: ${DB_NAME:?DB_NAME não configurado}
+      MYSQL_USER: ${DB_USER:?DB_USER não configurado}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD não configurada}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -u
+        - root
+        - --password=${DB_ROOT_PASSWORD}
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+
 volumes:
-  -.:/app
-ports:
-  - "3000:3000"
-environment:
-  - NODE_ENV: development
-  - DB_HOST: database
-  - DB_PORT: 3306
-  - DB_USER: techstore_app
-  - DB_PASSWORD: TechstoreDB@123
-  - DB_NAME: techstore
-
-
-database:
-  image: mysql:8.0
-  environment:
-    - MYSQL_ROOT_PASSWORD: TechstoreDB@123
-    - MYSQL_DATABASE: techstore
-    - MYSQL_USER: techstore_app
-    - MYSQL_PASSWORD: TechstoreDB@123
-    - MYSQL_ROOT_PASSWORD: RootTechstoreDB@123
-  ports:
-    - "3306:3306"
+  mysql_data:
