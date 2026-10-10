@@ -1,3 +1,15 @@
 node_modules/
 logs/
 dist/
+coverage/
+
+.env
+.env.*
+!.env.example
+
+config/credentials.json
+
+*.log
+npm-debug.log*
+.DS_Store
+.vscode/

@@ -1,7 +1,11 @@
 require("dotenv").config();
 
-const apiKey = process.env.API_KEY;
+const backupApiKey = process.env.BACKUP_API_KEY;
 
-console.log(`Inicializando rotina de backup...`);
-console.log(`API KEY utilizada no backup : ${senhaTesteBackup123}`);
-console.log("Backup relizado com sucesso!!!")
+if (!backupApiKey) {
+  throw new Error("A variável BACKUP_API_KEY não foi configurada.");
+}
+
+console.log("Inicializando rotina de backup...");
+console.log("Credencial de backup carregada com segurança.");
+console.log("Backup realizado com sucesso.");
